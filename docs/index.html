@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="./">
+  <title>[CW] Morse Walkie-Talkie ● Online</title>
+  <link rel="icon" id="dynamic-favicon" type="image/png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <!-- Viewport Stealth Mode Decoy Overlay Mount -->
+  <div id="stealth-mount" class="stealth-mount"></div>
+
+  <!-- Main Walkie-Talkie Interface Container -->
+  <div class="app-layout">
+    <!-- Top Bar Navigation & Station Telemetry -->
+    <header class="app-header">
+      <div class="header-branding">
+        <div class="radio-beacon-icon" aria-hidden="true"></div>
+        <div class="branding-text">
+          <h1 class="app-title">TAB MORSE WALKIE-TALKIE</h1>
+          <span class="app-subtitle">Covert Tab Chrome Telegraph Transmitter</span>
+        </div>
+      </div>
+
+      <!-- Telemetry Badges -->
+      <div class="header-telemetry">
+        <div class="telemetry-badge" title="Local browser tabs synchronized via BroadcastChannel">
+          <span class="badge-icon">📑</span>
+          <span id="local-tabs-count" class="badge-text">1 Tab (Solo)</span>
+        </div>
+        <div class="telemetry-badge">
+          <span class="badge-icon">📡</span>
+          <span id="webrtc-status-badge" class="status-badge rtc-disconnected">P2P Offline</span>
+        </div>
+        <div class="telemetry-badge" title="Station Callsign">
+          <span class="badge-icon">📻</span>
+          <span id="station-callsign" class="badge-mono">STATION-12</span>
+        </div>
+      </div>
+
+      <!-- Quick Action Controls -->
+      <div class="header-actions">
+        <button type="button" class="btn btn-action" id="btn-sound-toggle" title="Toggle Sound (M)">
+          <span id="sound-icon">🔊</span>
+          <span class="btn-label">Sound</span>
+          <kbd class="key-tag">M</kbd>
+        </button>
+
+        <button type="button" class="btn btn-action" id="btn-open-connect" title="Connect P2P across devices via WebRTC">
+          <span>🔗</span>
+          <span class="btn-label">P2P Link</span>
+        </button>
+
+        <button type="button" class="btn btn-action" id="btn-open-reference" title="Morse Code Cheat Sheet & Audio Preview">
+          <span>📖</span>
+          <span class="btn-label">Dictionary</span>
+          <kbd class="key-tag">?</kbd>
+        </button>
+
+        <button type="button" class="btn btn-stealth" id="btn-stealth-toggle" title="Toggle Corporate Spreadsheet Decoy (Escape)">
+          <span>📊</span>
+          <span class="btn-label">Decoy Mode</span>
+          <kbd class="key-tag key-esc">Esc</kbd>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Operational Workspace Grid -->
+    <main class="console-grid">
+      <!-- Column 1: Primary Telegraph Rig & Live Decoding -->
+      <section class="console-panel primary-rig-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">LIVE TELEGRAPH TRANSMITTER</h2>
+          <span class="panel-status-indicator">
+            <span class="indicator-led"></span>
+            750 Hz CW CARRIER
+          </span>
+        </div>
+
+        <!-- Live Morse Decoder Stream HUD -->
+        <div class="decoder-hud">
+          <div class="decoder-hud-header">
+            <span class="hud-label">CURRENT MORSE SYMBOLS</span>
+            <span class="hud-hints">&lt;200ms = • | &ge;200ms = — | 400ms = char | 1000ms = word</span>
+          </div>
+
+          <div class="hud-stream-box">
+            <div class="morse-symbol-line" id="live-morse-buffer">•••</div>
+            <div class="decoded-text-line" id="live-text-buffer">Waiting for signal...</div>
+          </div>
+
+          <!-- Dynamic Candidate Suggestions -->
+          <div class="candidates-row">
+            <span class="cand-label">POSSIBLE MATCHES:</span>
+            <div class="candidates-pills" id="candidates-list">
+              <span class="candidate-empty">Tap key to search</span>
+            </div>
+            <div class="buffer-actions">
+              <button type="button" class="btn-micro" id="btn-buffer-clear" title="Clear current buffer">Clear (C)</button>
+              <button type="button" class="btn-micro" id="btn-buffer-commit" title="Commit current word to log">Commit</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mechanical Straight Key Apparatus -->
+        <div class="telegraph-mount" id="telegraph-mount"></div>
+
+        <!-- Real-time Oscilloscope & CW Carrier Monitor -->
+        <div class="oscilloscope-container">
+          <div class="oscilloscope-header">
+            <span class="scope-label">AUDIO CARRIER OSCILLOSCOPE (750 Hz SINE)</span>
+            <span class="scope-mode">ZERO-CLICK ATTACK/DECAY ENVELOPE</span>
+          </div>
+          <canvas id="scope-canvas" class="scope-canvas" width="600" height="75"></canvas>
+        </div>
+      </section>
+
+      <!-- Column 2: Logging, Auto-Keyer & Station Rig Settings -->
+      <section class="console-panel auxiliary-panel">
+        <!-- Manual Text-to-Morse Auto-Keyer -->
+        <div class="sub-panel text-transmitter-panel">
+          <div class="sub-panel-header">
+            <h3 class="sub-panel-title">TEXT-TO-MORSE TRANSMITTER</h3>
+            <span class="sub-panel-desc">Auto-key messages with precise timing</span>
+          </div>
+
+          <div class="auto-keyer-form">
+            <div class="input-with-button">
+              <input type="text" id="tx-text-input" class="tx-input" placeholder="Type text to auto-transmit (e.g. SOS)..." maxlength="120" />
+              <button type="button" class="btn btn-primary" id="btn-auto-transmit">Transmit</button>
+              <button type="button" class="btn btn-danger" id="btn-stop-transmit" style="display: none;">Stop</button>
+            </div>
+
+            <div class="speed-control-row">
+              <label for="tx-wpm-slider" class="speed-label">Speed: <strong id="tx-wpm-value">15 WPM</strong></label>
+              <input type="range" id="tx-wpm-slider" class="range-slider" min="5" max="35" value="15" step="1" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Station Rig Settings & Tab Chrome Customization -->
+        <div class="sub-panel settings-panel">
+          <div class="sub-panel-header">
+            <h3 class="sub-panel-title">STATION AUDIO &amp; TAB CHROME</h3>
+          </div>
+
+          <div class="settings-grid">
+            <!-- Audio Pitch -->
+            <div class="setting-item">
+              <label for="pitch-slider" class="setting-label">CW Tone Pitch: <strong id="pitch-value">750 Hz</strong></label>
+              <input type="range" id="pitch-slider" class="range-slider" min="400" max="1100" value="750" step="25" />
+            </div>
+
+            <!-- Volume -->
+            <div class="setting-item">
+              <label for="volume-slider" class="setting-label">Master Volume</label>
+              <input type="range" id="volume-slider" class="range-slider" min="0" max="1" value="0.8" step="0.05" />
+            </div>
+
+            <!-- Dynamic Favicon Style -->
+            <div class="setting-item">
+              <label for="favicon-mode-select" class="setting-label">Tab Favicon Mode</label>
+              <select id="favicon-mode-select" class="setting-select">
+                <option value="lamp">High-Contrast Signal Lamp</option>
+                <option value="needle">Galvanometer Dial Needle</option>
+                <option value="radar">Radio Wave Radar Scope</option>
+                <option value="stealth">Covert Corporate Excel Icon</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transmission Log (TX / RX History) -->
+        <div class="sub-panel log-panel">
+          <div class="sub-panel-header log-header">
+            <h3 class="sub-panel-title">TRANSMISSION LOG (TX / RX)</h3>
+            <div class="log-actions">
+              <button type="button" class="btn-micro" id="btn-export-history" title="Download text log">Export</button>
+              <button type="button" class="btn-micro" id="btn-clear-history" title="Clear log">Clear</button>
+            </div>
+          </div>
+
+          <div class="history-list" id="history-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- App Footer / Instructions -->
+    <footer class="app-footer">
+      <div class="footer-left">
+        <span class="covert-tip">💡 <strong>COVERT TAB TIP:</strong> Switch to another browser tab! The tab title streams decoded text and the favicon blinks in real-time.</span>
+      </div>
+      <div class="footer-right">
+        <span>Hotkeys: <kbd>Space</kbd> Straight Key &bull; <kbd>Esc</kbd> Decoy Spreadsheet &bull; <kbd>M</kbd> Mute &bull; <kbd>?</kbd> Dictionary</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: WebRTC Cross-Device Peer Connection                     -->
+  <!-- ============================================================== -->
+  <dialog id="modal-connect" class="app-modal">
+    <div class="modal-card">
+      <header class="modal-header">
+        <h3 class="modal-title">CROSS-DEVICE PEER-TO-PEER LINK (WebRTC)</h3>
+        <button type="button" class="modal-close" id="btn-close-connect">&times;</button>
+      </header>
+
+      <div class="modal-body">
+        <p class="modal-desc">
+          Connect two browser tabs across different computers or phones with zero intermediary servers using WebRTC DataChannels and public STUN servers.
+        </p>
+
+        <div class="p2p-workflow-columns">
+          <!-- Step A: Host a room -->
+          <div class="p2p-card">
+            <h4>HOST A STATION</h4>
+            <p class="sub-p">1. Click below to generate connection code &amp; QR:</p>
+            <button type="button" class="btn btn-primary" id="btn-generate-offer">Create Host Offer</button>
+
+            <textarea id="host-signal-output" class="p2p-textarea" placeholder="Host connection code will appear here..." readonly></textarea>
+            <div class="p2p-card-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-copy-host-offer">Copy Code</button>
+            </div>
+
+            <div id="host-qr-container" class="qr-box">
+              <span class="qr-placeholder">QR Code will render here</span>
+            </div>
+
+            <p class="sub-p" style="margin-top: 1rem;">2. Paste the client's answer code below:</p>
+            <input type="text" id="client-answer-input" class="p2p-input" placeholder="Paste Client Answer code here..." />
+            <button type="button" class="btn btn-success" id="btn-accept-answer" style="margin-top: 0.5rem; width: 100%;">Connect &amp; Start P2P</button>
+          </div>
+
+          <!-- Step B: Join a room -->
+          <div class="p2p-card">
+            <h4>JOIN A STATION</h4>
+            <p class="sub-p">1. Paste the Host's connection code:</p>
+            <textarea id="join-offer-input" class="p2p-textarea" placeholder="Paste Host Offer code here..."></textarea>
+            <button type="button" class="btn btn-primary" id="btn-generate-answer" style="margin-top: 0.5rem; width: 100%;">Generate Answer</button>
+
+            <p class="sub-p" style="margin-top: 1rem;">2. Send this Answer code back to the Host:</p>
+            <textarea id="join-answer-output" class="p2p-textarea" placeholder="Answer code will appear here..." readonly></textarea>
+            <div class="p2p-card-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-copy-join-answer">Copy Answer Code</button>
+            </div>
+
+            <div id="join-qr-container" class="qr-box">
+              <span class="qr-placeholder">Answer QR Code</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: Morse Code Dictionary & Cheat Sheet                     -->
+  <!-- ============================================================== -->
+  <dialog id="modal-reference" class="app-modal">
+    <div class="modal-card">
+      <header class="modal-header">
+        <h3 class="modal-title">INTERNATIONAL MORSE CODE DICTIONARY</h3>
+        <button type="button" class="modal-close" id="btn-close-reference">&times;</button>
+      </header>
+
+      <div class="modal-body">
+        <div class="reference-search-bar">
+          <input type="text" id="reference-search" class="ref-search-input" placeholder="Search letters, numbers, symbols, or Morse pattern..." />
+        </div>
+
+        <div class="reference-grid" id="reference-grid">
+          <!-- Dynamically populated cards with audio preview buttons -->
+        </div>
+
+        <div class="reference-prosigns-info">
+          <h4>COMMON RADIO PROSIGNS</h4>
+          <div class="prosign-tags">
+            <span class="prosign-badge"><strong>SOS</strong> (...---...) Distress Signal</span>
+            <span class="prosign-badge"><strong>AR</strong> (.-.-.) End of Message</span>
+            <span class="prosign-badge"><strong>SK</strong> (...-.-) End of Contact</span>
+            <span class="prosign-badge"><strong>K</strong> (-.-) Invitation to Transmit</span>
+            <span class="prosign-badge"><strong>BT</strong> (-...-) Break / Pause</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- App Bootstrap Module -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
